@@ -465,7 +465,8 @@
   </div>
   <ul class="sidebar-menu">
     <li><button data-section="dashboard" data-title="Dashboard" class="nav-btn active"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 1.5m-5.25-1.5l1-1.5m9-3l-4.5-4.5m0 0l-4.5 4.5M12 3v13.5" /></svg> Dashboard</button></li>
-    <li><button data-section="form" data-title="Add"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Add<li><button data-section="report" data-title="All Data" class="nav-btn"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12a.75.75 0 01.75-.75h14.25a.75.75 0 010 1.5H4.5a.75.75 0 01-.75-.75zM3.75 6a.75.75 0 01.75-.75h14.25a.75.75 0 010 1.5H4.5a.75.75 0 01-.75-.75zm0 12a.75.75 0 01.75-.75h14.25a.75.75 0 010 1.5H4.5a.75.75 0 01-.75-.75z" /></svg> All Data</button></li>
+    <li><button data-section="form" data-title="Add"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Add </button></li>
+    <li><button data-section="report" data-title="All Data" class="nav-btn"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12a.75.75 0 01.75-.75h14.25a.75.75 0 010 1.5H4.5a.75.75 0 01-.75-.75zM3.75 6a.75.75 0 01.75-.75h14.25a.75.75 0 010 1.5H4.5a.75.75 0 01-.75-.75zm0 12a.75.75 0 01.75-.75h14.25a.75.75 0 010 1.5H4.5a.75.75 0 01-.75-.75z" /></svg> All Data</button></li>
     <li>
       <button id="nav-settings-toggle"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.438.995s.145.755.438.995l1.003.827c.485.4.665 1.07.26 1.431l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 01-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.437-.995s-.145-.755-.437-.995l-1.004-.827a1.125 1.125 0 01-.26-1.431l1.296-2.247a1.125 1.125 0 011.37-.49l1.217.456c.355.133.75.072 1.076.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> Settings ▼</button>
       <div id="settingsMenu">
@@ -717,6 +718,9 @@
   let monthlyChartInstance = null;
   let incotermsChartInstance = null;
   
+  // === PERUBAHAN: Peta untuk menyimpan ID Firebase berdasarkan No DN ===
+  let deliveryNoToIdMap = {};
+  
   const pebForm = document.getElementById('pebForm');
 
   const showToast = (message) => {
@@ -853,7 +857,7 @@
         if (column === 'deadline') { valA = a.deadlineValue; valB = b.deadlineValue; }
         
         const isDate = ['vbiDate', 'etdMill', 'vlegalDate', 'pebDate', 'vgmDate', 'sendPeb'].includes(column);
-        const isNumeric = ['freightCost', 'pic'].includes(column); // bookRef dihapus dari numeric
+        const isNumeric = ['freightCost', 'pic'].includes(column); 
         
         let comparison = 0;
         if (isDate) {
@@ -890,24 +894,21 @@
   const formatDateForDisplay = (dateString) => {
     if (!dateString) return '-';
     try {
-        // Coba parse sebagai YYYY-MM-DD (format internal)
         const parts = String(dateString).split('-');
         if (parts.length === 3) {
             const year = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10) - 1; // Month is 0-based
+            const month = parseInt(parts[1], 10) - 1; 
             const day = parseInt(parts[2], 10);
             const date = new Date(year, month, day); 
-            // Validasi lagi
             if (!isNaN(date.getTime()) && date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
-               return date.toLocaleDateString('en-GB'); // Format dd/mm/yyyy
+               return date.toLocaleDateString('en-GB'); 
             }
         }
-        // Jika format internal gagal atau bukan YYYY-MM-DD, coba parse langsung
         const date = new Date(dateString);
         if (!isNaN(date.getTime())) {
              return date.toLocaleDateString('en-GB');
         }
-        return '-'; // Return '-' jika semua gagal
+        return '-'; 
     } catch (e) { 
         console.error("Error formatting date for display:", dateString, e);
         return '-'; 
@@ -927,7 +928,7 @@
         const pebDate = item.pebDate ? new Date(item.pebDate) : null;
         return (pebDate && !isNaN(pebDate.getTime()) && (!latest || pebDate > latest)) ? pebDate : latest;
     }, null);
-    const lastPebText = lastPeb ? formatDateForDisplay(lastPeb.toISOString().split('T')[0]) : '-'; // Format sebelum display
+    const lastPebText = lastPeb ? formatDateForDisplay(lastPeb.toISOString().split('T')[0]) : '-'; 
 
     document.querySelectorAll('.stat-total-peb').forEach(el => el.textContent = totalCount);
     document.querySelectorAll('.stat-this-month').forEach(el => el.textContent = pebThisMonth);
@@ -1101,10 +1102,22 @@
     });
   }
 
+  // === PERUBAHAN: listenToPebData sekarang juga memetakan No DN ke ID ===
   const listenToPebData = () => {
     onValue(ref(db, 'dn_peb'), (snapshot) => {
       const rawData = [];
-      snapshot.forEach(child => { rawData.push({ id: child.key, ...child.val() }); });
+      deliveryNoToIdMap = {}; // Kosongkan peta
+      snapshot.forEach(child => { 
+          const data = child.val();
+          const id = child.key;
+          rawData.push({ id, ...data });
+          
+          // Buat map No DN -> Firebase ID for quick lookups
+          if (data.noDn) {
+            deliveryNoToIdMap[String(data.noDn)] = id;
+          }
+      });
+      
       dnPebData = processData(rawData); 
       
       updateDashboardStats(dnPebData);
@@ -1117,6 +1130,7 @@
       updateDeleteControls();
     }, (error) => console.error("Firebase read failed:", error));
   };
+  // ==============================================================
   
   const updateDeleteControls = () => {
       const selectedCount = document.querySelectorAll('#logTable tbody .row-checkbox:checked').length;
@@ -1129,13 +1143,11 @@
   
   let currentlyDisplayedData = [];
 
-  // === PERBAIKAN LOGIKA DEADLINE DI renderTable ===
   const renderTable = (data) => {
     currentlyDisplayedData = data;
     const tbody = document.querySelector("#logTable tbody");
     if (!tbody) return;
-
-    // Dapatkan tanggal hari ini (awal hari) SEKALI saja sebelum loop
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -1143,20 +1155,19 @@
       data.map(row => {
         let deadlineDisplay = '-';
         let deadlineClass = '';
-
-        // Hitung ulang selisih hari di sini menggunakan tanggal hari ini
+        
         if (row.etdMill) {
             try {
                 const etdDate = new Date(row.etdMill);
-                etdDate.setHours(0,0,0,0); // Normalisasi ke awal hari
+                etdDate.setHours(0,0,0,0); 
                 if(!isNaN(etdDate.getTime())) {
                     const diffTime = etdDate - today;
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Gunakan Math.ceil
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
 
                     if (diffDays > 0) {
                         deadlineDisplay = `H-${diffDays}`;
                     } else if (diffDays === 0) {
-                        deadlineDisplay = 'H (Today)'; // Tampilkan ini jika diffDays 0
+                        deadlineDisplay = 'H (Today)';
                     } else {
                         deadlineDisplay = `H+${Math.abs(diffDays)}`;
                         deadlineClass = 'overdue';
@@ -1204,14 +1215,13 @@
         </tr>`;
       }).join('');
   };
-  // ===========================================
 
   const handleSearch = () => {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const filteredData = dnPebData.filter(row => 
         Object.values(row).some(value => String(value).toLowerCase().includes(searchTerm))
     );
-    renderTable(filteredData); // renderTable akan menghitung ulang deadline
+    renderTable(filteredData);
   }
 
   const resetFormState = () => {
@@ -1228,7 +1238,6 @@
     currentEditId = id;
     Object.keys(rowData).forEach(key => {
         const el = document.getElementById(key);
-        // Pastikan format tanggal YYYY-MM-DD saat mengisi form
         if (el && el.type === 'date') {
            el.value = rowData[key] ? rowData[key].split('T')[0] : '';
         } else if (el) {
@@ -1244,8 +1253,10 @@
     event.preventDefault();
     const data = Object.fromEntries(new FormData(pebForm));
     
+    // Validasi Delivery Number (hanya saat menambah data baru)
     if (!currentEditId && data.noDn) {
-        const exists = dnPebData.some(row => String(row.noDn) === String(data.noDn)); // Bandingkan sebagai string
+        // Gunakan map untuk cek duplikat
+        const exists = deliveryNoToIdMap[String(data.noDn)];
         if (exists) {
             showToast("⚠️ Nomor Delivery sudah ada! Tidak dapat menyimpan data duplikat.");
             document.getElementById('noDn').focus();
@@ -1271,7 +1282,6 @@
         return; 
     }
     
-    // Pastikan bookRef disimpan sebagai string
     data.bookRef = String(data.bookRef || '').trim();
 
     const promise = currentEditId ? set(ref(db, `dn_peb/${currentEditId}`), data) : push(ref(db, 'dn_peb'), data);
@@ -1310,7 +1320,6 @@
     'PEB DATE':'pebDate', 'VGM':'vgmDate', 'SEND PEB NPE TO EMKL':'sendPeb'
   };
 
-  // Helper untuk parse tanggal dd.mm.yyyy ATAU angka serial Excel ke YYYY-MM-DD
   function parseExcelDate(value) {
       let formattedDate = null;
       if (typeof value === 'string') {
@@ -1360,10 +1369,8 @@
           }
       }
       
-      // Fallback: Coba parse langsung dengan new Date()
       if (formattedDate === null && value) {
          try {
-           // Cek apakah value adalah string 'YYYY-MM-DD' atau format yg dikenali Date()
            const date = new Date(value);
             if (!isNaN(date.getTime())) {
                  const year = date.getFullYear();
@@ -1402,6 +1409,7 @@
     XLSX.writeFile(wb, "MONITORING_PEB_Template.xlsx");
   };
   
+  // === PERUBAHAN LOGIKA UPLOAD EXCEL (UPDATE/ADD) ===
   const handleExcelUpload = () => {
       const fileInput = document.getElementById('excelFile');
       const file = fileInput.files[0];
@@ -1416,81 +1424,91 @@
               // Gunakan raw: true agar kita bisa handle tipe data sendiri
               const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { raw: true }); 
               
-              const existingDNs = new Set(dnPebData.map(row => String(row.noDn))); 
+              let rowsAdded = 0;
+              let rowsUpdated = 0;
               let duplicatesInFile = 0;
               let parseErrors = 0;
-              const rowsToUpload = [];
-              const dateColumns = ['vbiDate','etdMill','vlegalDate','pebDate','vgmDate','sendPeb']; // Daftar kolom tanggal
+              const promises = [];
+              const processedDNsInFile = new Set(); // Untuk cek duplikat di DALAM file
+              const dateColumns = ['vbiDate','etdMill','vlegalDate','pebDate','vgmDate','sendPeb'];
               
               jsonData
                 .filter(row => row['Delivery'] && !String(row['Delivery']).includes('Sample'))
                 .forEach(item => {
-                  const deliveryNumber = String(item['Delivery']); 
-                  if (existingDNs.has(deliveryNumber)) {
+                  const deliveryNumber = String(item['Delivery']).trim(); 
+                  
+                  // 1. Cek duplikat di dalam file Excel itu sendiri
+                  if (processedDNsInFile.has(deliveryNumber)) {
                     duplicatesInFile++;
-                  } else {
-                    const newRow = {};
-                    let rowHasError = false; 
-                    for (const excelHeader in columnMapForTemplate) {
-                        const dbKey = columnMapForTemplate[excelHeader];
-                        const originalValue = item[excelHeader]; 
+                    return; // Lewati baris ini
+                  }
+                  processedDNsInFile.add(deliveryNumber);
 
-                        if (originalValue !== undefined && originalValue !== null && String(originalValue).trim() !== "") {
-                            if (dateColumns.includes(dbKey)) {
-                                 const formattedDate = parseExcelDate(originalValue); 
-                                 newRow[dbKey] = formattedDate; 
-                                 
-                                 if(formattedDate === null && originalValue) { 
-                                     console.warn(`Could not parse date for ${dbKey} in Delivery ${deliveryNumber}:`, originalValue);
-                                     parseErrors++;
-                                     // rowHasError = true; 
-                                 }
-                            } else if (dbKey === 'bookRef') { // Perlakukan bookRef sbg string
-                                newRow[dbKey] = String(originalValue).trim(); 
-                            } else {
-                                newRow[dbKey] = typeof originalValue === 'string' ? originalValue.trim() : originalValue;
-                            }
-                        } else {
-                           newRow[dbKey] = null; 
-                        }
-                    }
-                    
-                    // if (!rowHasError) { 
-                       rowsToUpload.push(newRow);
-                       existingDNs.add(deliveryNumber); 
-                    // }
+                  // 2. Siapkan data baris (newRow)
+                  const newRow = {};
+                  for (const excelHeader in columnMapForTemplate) {
+                      const dbKey = columnMapForTemplate[excelHeader];
+                      const originalValue = item[excelHeader]; 
+
+                      if (originalValue !== undefined && originalValue !== null && String(originalValue).trim() !== "") {
+                          if (dateColumns.includes(dbKey)) {
+                               const formattedDate = parseExcelDate(originalValue); 
+                               newRow[dbKey] = formattedDate; 
+                               if(formattedDate === null && originalValue) { 
+                                   console.warn(`Could not parse date for ${dbKey} in Delivery ${deliveryNumber}:`, originalValue);
+                                   parseErrors++;
+                               }
+                          } else if (dbKey === 'bookRef') { 
+                              newRow[dbKey] = String(originalValue).trim(); 
+                          } else {
+                              newRow[dbKey] = typeof originalValue === 'string' ? originalValue.trim() : originalValue;
+                          }
+                      } else {
+                         newRow[dbKey] = null; 
+                      }
+                  }
+                  
+                  // 3. Cek apakah No DN sudah ada di database (via map)
+                  const existingId = deliveryNoToIdMap[deliveryNumber];
+                  
+                  if (existingId) {
+                      // UPDATE: No DN sudah ada
+                      promises.push(set(ref(db, `dn_peb/${existingId}`), newRow));
+                      rowsUpdated++;
+                  } else {
+                      // ADD: No DN baru
+                      promises.push(push(ref(db, 'dn_peb'), newRow));
+                      rowsAdded++;
                   }
               });
 
-              if (rowsToUpload.length > 0) {
-                  const promises = rowsToUpload.map(newRow => push(ref(db, 'dn_peb'), newRow));
-                  Promise.all(promises).then(results => {
-                      let message = `✅ Successfully imported ${results.length} rows.`;
-                      if (duplicatesInFile > 0) {
-                          message += ` ⚠️ ${duplicatesInFile} rows skipped due to duplicate Delivery Numbers.`;
-                      }
-                      if (parseErrors > 0) {
-                          message += ` ⚠️ ${parseErrors} date fields could not be parsed correctly. Check console for details.`;
-                      }
-                      showToast(message);
+              // 4. Selesaikan semua promise dan beri laporan
+              Promise.all(promises).then(results => {
+                  let message = "";
+                  if (rowsAdded > 0) message += `✅ ${rowsAdded} data baru ditambahkan. `;
+                  if (rowsUpdated > 0) message += `🔄 ${rowsUpdated} data diperbarui. `;
+                  if (duplicatesInFile > 0) {
+                      message += ` ⚠️ ${duplicatesInFile} baris duplikat di file dilewati.`;
+                  }
+                  if (parseErrors > 0) {
+                      message += ` ⚠️ ${parseErrors} kolom tanggal gagal diproses.`;
+                  }
+                  if (message === "") {
+                      message = "Tidak ada data baru atau data untuk diperbarui.";
+                  }
+                  
+                  showToast(message.trim());
+                  if (rowsAdded > 0 || rowsUpdated > 0) {
                       showSection("report", "All Data");
-                  });
-              } else {
-                  let message = "No new data imported.";
-                   if (duplicatesInFile > 0) {
-                      message = `⚠️ ${duplicatesInFile} rows skipped due to duplicate Delivery Numbers.`;
-                   }
-                    if (parseErrors > 0) {
-                         message += ` ⚠️ ${parseErrors} date fields could not be parsed.`;
-                    }
-                  showToast(message);
-              }
+                  }
+              });
 
           } catch (error) { console.error("File processing error:", error); showToast("Error processing file. Please check format and column names.");
           } finally { uploadBtn.textContent = "📤 Upload"; uploadBtn.disabled = false; fileInput.value = ""; }
       };
       reader.readAsArrayBuffer(file);
   };
+  // ===========================================
   
   const exportToExcel = () => {
     const headersInOrder = [ 
@@ -1513,7 +1531,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     showSection('dashboard', 'Dashboard'); // Default view
     Object.keys(settingsConfig).forEach(listenToSettings);
-    listenToPebData();
+    listenToPebData(); // Ini akan memuat data dan map `deliveryNoToIdMap`
 
     document.getElementById('searchInput').addEventListener('keyup', handleSearch);
     document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
