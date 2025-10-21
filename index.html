@@ -24,7 +24,7 @@
       --border-color: #dee2e6;
       --red-color: #dc3545;
       --green-color: #28a745;
-      /* --yellow-color: #ffc107; */ /* Warna Incomplete sekarang merah */
+      --yellow-color: #ffc107; 
       --blue-color: #007BFF;
 
       /* Efek Visual */
@@ -285,6 +285,11 @@
       background-color: var(--background-color);
       transition: all var(--transition-speed);
     }
+    /* === PERBAIKAN: Input Book Ref khusus type=text === */
+    input#bookRef { 
+        appearance: textfield; /* Optional: hilangkan spinner di beberapa browser */
+    }
+    /* ============================================== */
     input:focus, select:focus {
       outline: none;
       border-color: var(--primary-color);
@@ -533,7 +538,7 @@
         <div class="form-field"><label for="vbiDate">VBI2 Date</label><input type="date" id="vbiDate" name="vbiDate"></div>
         <div class="form-field"><label for="etdMill">ETD Mill</label><input type="date" id="etdMill" name="etdMill"></div>
         <div class="form-field"><label for="notul">Notul</label><select id="notul" name="notul"></select></div>
-        <div class="form-field"><label for="bookRef">Book Ref Number</label><input type="number" id="bookRef" name="bookRef"></div>
+        <div class="form-field"><label for="bookRef">Book Ref Number</label><input type="text" id="bookRef" name="bookRef"></div>
         <div class="form-field"><label for="shipTo">Ship to Party Name</label><input type="text" id="shipTo" name="shipTo"></div>
         <div class="form-field"><label for="importer">Importer Name</label><input type="text" id="importer" name="importer"></div>
         <div class="form-field"><label for="country">Country Destination</label><input type="text" id="country" name="country"></div>
@@ -842,6 +847,7 @@
        .catch(e => { console.error("Firebase Error:", e); showToast("Failed to delete item."); });
   };
   
+  // === PERBAIKAN SORTING bookRef ===
   const sortData = (column) => {
     sortDirection = (sortColumn === column && sortDirection === 'asc') ? 'desc' : 'asc';
     sortColumn = column;
@@ -849,17 +855,37 @@
         let valA = a[column] || '';
         let valB = b[column] || '';
         if (column === 'deadline') { valA = a.deadlineValue; valB = b.deadlineValue; }
+        
         const isDate = ['vbiDate', 'etdMill', 'vlegalDate', 'pebDate', 'vgmDate', 'sendPeb'].includes(column);
-        const isNumeric = ['bookRef', 'freightCost', 'pic'].includes(column);
+        // Hapus 'bookRef' dari isNumeric
+        const isNumeric = ['freightCost', 'pic'].includes(column); 
+        
         let comparison = 0;
-        if (isDate) comparison = new Date(valA) - new Date(valB);
-        else if (isNumeric) comparison = parseFloat(String(valA).replace(/,/g, '') || 0) - parseFloat(String(valB).replace(/,/g, '') || 0);
-        else comparison = String(valA).localeCompare(String(valB));
+        if (isDate) {
+            // Handle perbandingan tanggal yang mungkin null/invalid
+            const dateA = valA ? new Date(valA) : null;
+            const dateB = valB ? new Date(valB) : null;
+            if (dateA && dateB && !isNaN(dateA.getTime()) && !isNaN(dateB.getTime())) {
+                comparison = dateA - dateB;
+            } else if (dateA && !isNaN(dateA.getTime())) {
+                comparison = -1; // Tanggal valid duluan
+            } else if (dateB && !isNaN(dateB.getTime())) {
+                comparison = 1; // Tanggal valid duluan
+            } else {
+                comparison = 0; // Keduanya invalid/null
+            }
+        } else if (isNumeric) {
+             comparison = parseFloat(String(valA).replace(/,/g, '') || 0) - parseFloat(String(valB).replace(/,/g, '') || 0);
+        } else { 
+            // Default ke perbandingan string (termasuk untuk bookRef)
+            comparison = String(valA).localeCompare(String(valB));
+        }
         return sortDirection === 'asc' ? comparison : -comparison;
     });
     handleSearch();
     updateSortIndicators();
   };
+  // ==============================
   
   const updateSortIndicators = () => {
     document.querySelectorAll('th.sortable .sort-indicator').forEach(span => { span.textContent = ''; });
@@ -944,7 +970,7 @@
         labels: ['Completed', 'On Progress', 'Incomplete'],
         datasets: [{
             data: [ statusCounts['Completed'] || 0, statusCounts['On Progress'] || 0, statusCounts['Incomplete'] || 0 ],
-            backgroundColor: ['#28a745', '#007BFF', '#dc3545'], // Warna Incomplete merah
+            backgroundColor: ['#28a745', '#007BFF', '#dc3545'], 
             hoverOffset: 4
         }]
     };
@@ -1251,13 +1277,10 @@
           const partsDot = value.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/); 
           if (partsDot) {
               const day = parseInt(partsDot[1], 10);
-              const month = parseInt(partsDot[2], 10); // Bulan (1-based)
+              const month = parseInt(partsDot[2], 10); 
               const year = parseInt(partsDot[3], 10);
-              // Validasi dasar tanggal
               if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-                  // Buat objek Date menggunakan waktu lokal
                   const date = new Date(year, month - 1, day); 
-                  // Cek ulang apakah tanggal valid setelah dibuat objeknya
                   if (date && date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day) {
                       const finalMonth = String(month).padStart(2, '0');
                       const finalDay = String(day).padStart(2, '0');
@@ -1265,19 +1288,29 @@
                   }
               }
           } 
-          // Tambahkan else if di sini jika ada format string lain (misal dd/mm/yyyy)
-          // else if (value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)) { ... }
+          // Tambahkan format lain jika perlu, misal dd/mm/yyyy
+          else {
+              const partsSlash = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+              if (partsSlash) {
+                 const day = parseInt(partsSlash[1], 10);
+                 const month = parseInt(partsSlash[2], 10);
+                 const year = parseInt(partsSlash[3], 10);
+                 if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+                     const date = new Date(year, month - 1, day);
+                     if (date && date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day) {
+                         const finalMonth = String(month).padStart(2, '0');
+                         const finalDay = String(day).padStart(2, '0');
+                         formattedDate = `${year}-${finalMonth}-${finalDay}`;
+                     }
+                 }
+              }
+          }
       } else if (typeof value === 'number' && value > 1) { // Angka serial Excel
           try {
-              // Konversi angka serial Excel ke Date object JavaScript
-              // Angka serial Excel merepresentasikan hari sejak 1 Jan 1900 (atau 1904 di Mac)
-              // 25569 adalah offset antara epoch Excel (1 Jan 1900) dan epoch Unix (1 Jan 1970)
               const date = new Date(Math.round((value - 25569) * 86400 * 1000));
-              // Cek apakah tanggal valid setelah konversi
               if (!isNaN(date.getTime())) {
-                  // Format ke YYYY-MM-DD menggunakan komponen lokal browser
                   const year = date.getFullYear();
-                  const month = String(date.getMonth() + 1).padStart(2, '0'); // getMonth() 0-based
+                  const month = String(date.getMonth() + 1).padStart(2, '0');
                   const day = String(date.getDate()).padStart(2, '0');
                   formattedDate = `${year}-${month}-${day}`;
               }
@@ -1285,22 +1318,23 @@
               console.error("Error converting Excel date number:", value, e);
           }
       }
-      // Jika masih null, coba parse langsung dengan new Date() sebagai fallback terakhir
+      
+      // Fallback: Coba parse langsung dengan new Date() jika belum berhasil
       if (formattedDate === null && value) {
          try {
            const date = new Date(value);
             if (!isNaN(date.getTime())) {
                  const year = date.getFullYear();
-                 if (year > 1900 && year < 2100) { // Cek tahun wajar
+                 if (year > 1900 && year < 2100) { 
                      const month = String(date.getMonth() + 1).padStart(2, '0');
                      const day = String(date.getDate()).padStart(2, '0');
                      formattedDate = `${year}-${month}-${day}`;
                  }
             }
-         } catch (e) { /* Abaikan error jika fallback gagal */ }
+         } catch (e) { /* Abaikan error */ }
       }
       
-      return formattedDate; // Return YYYY-MM-DD string or null
+      return formattedDate; 
   }
 
 
@@ -1369,19 +1403,23 @@
                                  if(formattedDate === null && originalValue) { 
                                      console.warn(`Could not parse date for ${dbKey} in Delivery ${deliveryNumber}:`, originalValue);
                                      parseErrors++;
-                                     // rowHasError = true; // Uncomment jika ingin skip baris dengan error tanggal
+                                     // rowHasError = true; // Uncomment jika ingin skip baris
                                  }
                             } else {
-                                // Untuk kolom non-tanggal, trim jika string
-                                newRow[dbKey] = typeof originalValue === 'string' ? originalValue.trim() : originalValue;
+                                // === PERBAIKAN: Pastikan Book Ref diperlakukan sbg string ===
+                                if (dbKey === 'bookRef') {
+                                    newRow[dbKey] = String(originalValue).trim(); 
+                                } else {
+                                    newRow[dbKey] = typeof originalValue === 'string' ? originalValue.trim() : originalValue;
+                                }
+                                // =========================================================
                             }
                         } else {
-                           // Set null jika kolom kosong atau hanya spasi
                            newRow[dbKey] = null; 
                         }
                     }
                     
-                    // if (!rowHasError) { // Uncomment jika ingin skip baris dengan error tanggal
+                    // if (!rowHasError) { // Uncomment jika ingin skip baris
                        rowsToUpload.push(newRow);
                        existingDNs.add(deliveryNumber); 
                     // }
