@@ -373,8 +373,8 @@
      
     .status-completed { color: var(--green-color); }
     .status-completed::before { background-color: var(--green-color); }
-    .status-on-progress { color: var(--blue-color); }
-    .status-on-progress::before { background-color: var(--blue-color); }
+    .status-notul { color: var(--blue-color); }
+    .status-notul::before { background-color: var(--blue-color); }
     .status-incomplete { color: var(--red-color); } 
     .status-incomplete::before { background-color: var(--red-color); }
 
@@ -978,9 +978,9 @@
     // 1. Chart Status PEB
     const statusCounts = data.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
     const statusData = {
-        labels: ['Completed', 'On Progress', 'Incomplete'],
+        labels: ['Completed', 'Notul', 'Incomplete'],
         datasets: [{
-            data: [ statusCounts['Completed'] || 0, statusCounts['On Progress'] || 0, statusCounts['Incomplete'] || 0 ],
+            data: [ statusCounts['Completed'] || 0, statusCounts['Notul'] || 0, statusCounts['Incomplete'] || 0 ],
             backgroundColor: ['#28a745', '#007BFF', '#dc3545'], 
             hoverOffset: 4
         }]
@@ -1082,7 +1082,7 @@
         
         let status = '';
         if (row.notul && String(row.notul).toLowerCase().startsWith('yes')) {
-            status = 'On Progress';
+            status = 'Notul';
         } else {
             let fieldsToCheck;
             if (row.incoterms && String(row.incoterms).toUpperCase() === 'FOB') {
