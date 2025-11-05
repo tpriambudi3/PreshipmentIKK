@@ -113,6 +113,41 @@
       color: white;
       font-weight: 600;
     }
+    /* Tombol download VGM */
+    .vgm-download-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+    
+    .vgm-download-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem;
+      background-color: #f8f9fa;
+      border: 1px solid var(--border-color, #dee2e6);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--font-color, #343a40);
+      font-weight: 500;
+      transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .vgm-download-link:hover {
+      background-color: #e9ecef;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .vgm-download-link svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      color: var(--primary-color, #007BFF);
+    }
     #settingsMenu {
         padding-left: 30px;
         background-color: rgba(0,0,0,0.15);
@@ -467,6 +502,7 @@
     <li><button data-section="dashboard" data-title="Dashboard" class="nav-btn active"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 1.5m-5.25-1.5l1-1.5m9-3l-4.5-4.5m0 0l-4.5 4.5M12 3v13.5" /></svg> Dashboard</button></li>
     <li><button data-section="form" data-title="Add"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Add </button></li>
     <li><button data-section="report" data-title="All Data" class="nav-btn"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12a.75.75 0 01.75-.75h14.25a.75.75 0 010 1.5H4.5a.75.75 0 01-.75-.75zM3.75 6a.75.75 0 01.75-.75h14.25a.75.75 0 010 1.5H4.5a.75.75 0 01-.75-.75zm0 12a.75.75 0 01.75-.75h14.25a.75.75 0 010 1.5H4.5a.75.75 0 01-.75-.75z" /></svg> All Data</button></li>
+    <li><button data-section="vgm" data-title="VGM" class="nav-btn"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.65 2.5a.75.75 0 01-.7 1.1h-14a.75.75 0 01-.7-1.1L3.75 7.5m16.5 0H3.75m16.5 0l-.54 2.16m-16.5-2.16l.54 2.16m16.5-2.16V6.75a1.5 1.5 0 00-1.5-1.5H5.25A1.5 1.5 0 003.75 6.75v10.5a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5V7.5zM12 12V9.75" /></svg> VGM</button></li>
     <li>
       <button id="nav-settings-toggle"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.438.995s.145.755.438.995l1.003.827c.485.4.665 1.07.26 1.431l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 01-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.437-.995s-.145-.755-.437-.995l-1.004-.827a1.125 1.125 0 01-.26-1.431l1.296-2.247a1.125 1.125 0 011.37-.49l1.217.456c.355.133.75.072 1.076.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> Settings ▼</button>
       <div id="settingsMenu">
@@ -630,6 +666,134 @@
         <tbody></tbody>
       </table>
     </div>
+  </section>
+
+  <section class="page-section card" id="vgm">
+      <div class="crud-container">
+          <h2>VGM Shipping Line</h2>
+          <p>Silakan unduh template (format .csv) untuk shipping line yang Anda butuhkan.</p>
+          
+          <ul class="vgm-download-list">
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+               <a href="01.HAPAG.xls" class="vgm-download-link" download="02. ONE.xls - Sheet1.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>01. HAPAG</span>
+              </a>
+            </li>
+              <a href="02.ONE.xls" class="vgm-download-link" download="02. ONE.xls - Sheet1.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>02. ONE</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="03.COSCO.xls" class="vgm-download-link" download="03. COSCO.xls - Sheet1.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>03. COSCO</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="04.MAERSK.xls" class="vgm-download-link" download="04. MAERSK.xls - Sheet1.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>04. MAERSK</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="05.MSC.xlsx" class="vgm-download-link" download="05. MSC.xlsx - VGM.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>05. MSC</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="06.PIL.xlsm" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>06. PIL</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="07.CMACGM.xlsx" class="vgm-download-link" download="05. MSC.xlsx - Country_UN_CODE.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>07. CMA CGM</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="08.RCL.xls" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>08. RCL</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="09.KMTC.xls" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>09. KMTC</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="11.EVERGREEN.xlsx" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>11. EVERGREEN</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="12.OOCL.xlsx" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>12. OOCL</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="13.HEUNG A.xls" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>13. HEUNG A</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="14.HYUNDAI.xls" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>14. HYUNDAI</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="15.YANGMING.xlsx" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>15. YANGMING</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="16.ZIM_Gold_Star_Line.xlsx" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>16. ZIM GOLD STAR LINE</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="17.SAMIN.xls" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>17. SAMIN</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="19.SINOKOR.xls" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>19. SINOKOR</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
   </section>
 
   <section class="page-section crud-container card" id="crudPic">
