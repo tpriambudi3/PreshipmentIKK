@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MONITORING PEB Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      /* Palette Warna */
+      --primary-color: #007BFF;
+      --primary-hover: #0056b3;
+      --secondary-color: #1e293b;
+      --background-color: #f8f9fa;
+      --container-bg: #ffffff;
+      --font-color: #343a40;
+      --border-color: #dee2e6;
+      --red-color: #dc3545;
+      --green-color: #28a745;
+      /* --yellow-color: #ffc107; */ 
+      --blue-color: #007BFF;
+
+      /* Efek Visual */
+      --border-radius: 10px;
+      --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      --card-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+      --transition-speed: 0.3s;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--background-color);
+      color: var(--font-color);
+      display: flex;
+      font-size: 15px;
+      overflow-x: hidden;
+    }
+
+    /* --- Sidebar --- */
+    .sidebar {
+      width: 250px;
+      background: var(--secondary-color);
+      color: #e9ecef;
+      height: 100vh;
+      padding: 20px 0;
+      transition: margin-left var(--transition-speed) ease;
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+      border-right: 1px solid #374151;
+      flex-shrink: 0;
+    }
+    .sidebar.hidden { margin-left: -250px; }
+    .sidebar-header {
+      padding: 0 20px 20px 20px;
+      text-align: center;
+      border-bottom: 1px solid #374151;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .sidebar-logo {
+        width: 100%;
+        max-width: 150px;
+        height: auto;
+        margin-bottom: 15px;
+        background-color: white;
+        padding: 10px;
+        border-radius: var(--border-radius);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .sidebar-header h2 {
+      margin: 0;
+      font-size: 1.2em;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .sidebar-menu { list-style: none; padding: 0 10px; margin: 20px 0; flex-grow: 1; }
+    .sidebar-menu button {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      width: 100%;
+      padding: 14px 20px;
+      margin-bottom: 5px;
+      background: none;
+      border: none;
+      color: #d1d5db;
+      text-align: left;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all var(--transition-speed) ease;
+    }
+    .sidebar-menu button .icon { width: 20px; height: 20px; }
+    .sidebar-menu button:hover { background: #374151; color: white; }
+    .sidebar-menu button.active {
+      background: var(--primary-color);
+      color: white;
+      font-weight: 600;
+    }
+    /* Tombol download VGM */
+    .vgm-download-list {
+      list-style: none;
+      padding: 0;
+      margin-top: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+    
+    .vgm-download-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem;
+      background-color: #f8f9fa;
+      border: 1px solid var(--border-color, #dee2e6);
+      border-radius: 8px;
+      text-decoration: none;
+      color: var(--font-color, #343a40);
+      font-weight: 500;
+      transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .vgm-download-link:hover {
+      background-color: #e9ecef;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .vgm-download-link svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      color: var(--primary-color, #007BFF);
+    }
+    #settingsMenu {
+        padding-left: 30px;
+        background-color: rgba(0,0,0,0.15);
+        border-radius: 8px;
+        margin-top: 5px;
+        display: none;
+    }
+    #settingsMenu button { padding-top: 10px; padding-bottom: 10px; }
+
+    /* --- Konten Utama --- */
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      margin-left: 250px;
+      transition: margin-left var(--transition-speed) ease;
+      min-width: 0;
+    }
+    .main-content.full-width { margin-left: 0; }
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .toggle-btn {
+      background: var(--container-bg);
+      color: var(--font-color);
+      border: 1px solid var(--border-color);
+      width: 44px; height: 44px;
+      cursor: pointer;
+      font-size: 1.5em;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition-speed) ease;
+    }
+    .toggle-btn:hover { background-color: #e9ecef; }
+    .page-title { font-size: 2.2em; font-weight: 700; margin: 0; }
+    .card {
+      background: var(--container-bg);
+      padding: 30px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      margin-bottom: 30px;
+      border: 1px solid var(--border-color);
+    }
+    .page-section { display: none; }
+    .page-section.active { display: block; animation: fadeIn 0.5s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* --- Layout Dashboard & Statistik --- */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px;
+    }
+    .chart-card, .pic-task-card {
+        padding: 25px;
+        background: var(--container-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        border: 1px solid var(--border-color);
+    }
+    .chart-card h3, .pic-task-card h3 {
+        margin-top: 0;
+        margin-bottom: 20px;
+        font-size: 1.2em;
+        text-align: center;
+        color: var(--secondary-color);
+    }
+    
+    .dashboard-stats, .stat-cards-row {
+        grid-column: 1 / -1; 
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 25px;
+    }
+    .stat-card {
+        background: var(--container-bg);
+        padding: 25px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        transition: all var(--transition-speed) ease;
+    }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: var(--card-shadow); }
+    .stat-card .icon-wrapper {
+        padding: 18px;
+        border-radius: 50%;
+        background-color: #e7f3ff;
+        color: var(--primary-color);
+        font-size: 2.2em;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+    .stat-card h3 {
+        margin: 0 0 5px 0;
+        color: #6c757d;
+        font-size: 0.95em;
+        font-weight: 500;
+        text-align: left;
+    }
+    .stat-card p {
+        font-size: 2.1em;
+        font-weight: 700;
+        color: var(--secondary-color);
+        margin: 0;
+        word-break: break-all; 
+        line-height: 1.2; 
+    }
+    
+    .stat-card p.stat-value-date {
+       font-size: 1.8em; 
+    }
+
+    #statusChartContainer, #incotermsChartWrapper {
+        position: relative;
+        height: 350px; 
+        width: 100%;
+    }
+    
+    #monthlyChartContainer {
+        grid-column: 1 / -1; 
+        height: 350px;
+    }
+
+    /* Kartu PIC Tasks */
+    .pic-task-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .pic-task-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 5px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .pic-task-list li:last-child {
+        border-bottom: none;
+    }
+    .pic-info {
+        font-weight: 600;
+    }
+    .pic-task-count {
+        font-size: 1.4em;
+        font-weight: 700;
+        color: var(--red-color);
+        background-color: #ffebee;
+        padding: 4px 12px;
+        border-radius: 20px;
+    }
+
+    /* --- Form & Tombol --- */
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px; }
+    .form-field { display: flex; flex-direction: column; }
+    .form-field label { margin-bottom: 8px; font-weight: 600; font-size: 0.9em; color: #495057; }
+    input[type="text"], input[type="date"], input[type="number"], select {
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 1em;
+      width: 100%;
+      background-color: var(--background-color);
+      transition: all var(--transition-speed);
+    }
+    input#bookRef { 
+        appearance: textfield; 
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+      background-color: white;
+    }
+    .form-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 12px; margin-top: 25px; }
+    .btn {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: 600;
+      transition: all var(--transition-speed) ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn:disabled { cursor: not-allowed; opacity: 0.6; }
+    .btn-primary { background: var(--primary-color); color: white; }
+    .btn-secondary { background-color: var(--container-bg); color: var(--font-color); border: 1px solid var(--border-color); }
+    .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--card-shadow); }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+
+    /* --- Tabel --- */
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    
+    th, td { 
+      border-bottom: 1px solid var(--border-color); 
+      padding: 14px 16px; 
+      text-align: left; 
+      white-space: nowrap; 
+      background-color: var(--container-bg); 
+      vertical-align: middle !important;
+    }
+
+    th {
+      background-color: #f8f9fa;
+      color: #495057;
+      font-weight: 600;
+      font-size: 0.85em;
+      text-transform: uppercase;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    th.sortable:hover { background-color: #e9ecef; }
+    tbody tr:hover td { background-color: #e7f3ff; }
+    .action-btn { background: none; border: none; cursor: pointer; padding: 5px; font-size: 1.2em; margin: 0 4px; color: #adb5bd; }
+    .action-btn:hover { color: var(--primary-color); }
+    .table-actions { margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
+    .overdue { color: var(--red-color); font-weight: 600; }
+    #searchInput {
+        padding: 10px 14px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1em;
+        width: 300px;
+    }
+    
+    /* CSS Status Kolom */
+    td[class^="status-"] {
+        font-weight: 600;
+    }
+    td[class^="status-"]::before {
+        content: '';
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 8px;
+    }
+     
+    .status-completed { color: var(--green-color); }
+    .status-completed::before { background-color: var(--green-color); }
+    .status-notul { color: var(--blue-color); }
+    .status-notul::before { background-color: var(--blue-color); }
+    .status-incomplete { color: var(--red-color); } 
+    .status-incomplete::before { background-color: var(--red-color); }
+
+    /* --- Kolom Sticky --- */
+    .sticky-col { position: sticky; background-clip: padding-box; }
+    th.sticky-col { z-index: 3; }
+    td.sticky-col { z-index: 1; }
+    .sticky-col-1 { left: 0px;  border-right: 2px solid var(--border-color); }
+    .sticky-col-actions { right: 0px; border-left: 2px solid var(--border-color); }
+    tbody tr:hover .sticky-col { background-color: #e7f3ff; }
+
+    /* --- Halaman Settings --- */
+    .crud-container { max-width: 700px; margin: auto; }
+    .crud-header { display: flex; gap: 10px; margin-bottom: 20px; }
+    #newPic, #newCurr, #newIncoterms, #newNotul { flex-grow: 1; }
+    
+    .crud-list-container { 
+        border: 1px solid var(--border-color); 
+        border-radius: var(--border-radius); 
+        overflow: hidden; 
+        background-color: var(--container-bg); 
+    }
+
+    .crud-list-header {
+        display: flex; 
+        align-items: center;
+        padding: 12px 18px;
+        background-color: #f8f9fa; 
+        color: #495057;
+        font-weight: 600;
+        font-size: 0.9em;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .crud-list { 
+        list-style: none; 
+        padding: 0; 
+        margin: 0; 
+        max-height: 400px; 
+        overflow-y: auto; 
+    }
+    
+    .crud-list li { 
+        display: flex; 
+        align-items: center; 
+        padding: 12px 18px; 
+        border-bottom: 1px solid var(--border-color); 
+    }
+    .crud-list li:last-child { 
+        border-bottom: none; 
+    }
+
+    .crud-list-header .item-name,
+    .crud-list li .item-name { 
+        flex: 1; 
+        padding-right: 15px; 
+    } 
+    .crud-list-header .item-date,
+    .crud-list li .item-date { 
+        width: 140px; 
+        text-align: center; 
+        color: #6c757d; 
+        flex-shrink: 0; 
+    }
+    .crud-list-header .item-actions,
+    .crud-list li .item-actions { 
+        width: 60px; 
+        text-align: right; 
+        flex-shrink: 0; 
+    }
+
+    /* --- Notifikasi Toast --- */
+    #toast { visibility: hidden; min-width: 250px; background-color: var(--secondary-color); color: #fff; text-align: center; border-radius: var(--border-radius); padding: 16px; position: fixed; z-index: 1001; right: 30px; top: 30px; font-size: 17px; opacity: 0; transition: all 0.5s ease-in-out; }
+    #toast.show { visibility: visible; opacity: 1; top: 50px; }
+
+    /* --- Area Upload --- */
+    .upload-section { border-top: 1px solid var(--border-color); margin-top: 30px; padding-top: 25px; }
+    .upload-box { border: 2px dashed var(--border-color); border-radius: var(--border-radius); padding: 40px; text-align: center; background-color: #f8f9fa; }
+    .upload-box:hover { background-color: #e7f3ff; border-color: var(--primary-color); }
+  </style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <img src="pathkelogo-indah-kiat.png" alt="Indah Kiat Logo" class="sidebar-logo">
+    <h2 id="home-title">MONITORING PEB</h2>
+  </div>
+  <ul class="sidebar-menu">
+    <li><button data-section="dashboard" data-title="Dashboard" class="nav-btn active"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 1.5m-5.25-1.5l1-1.5m9-3l-4.5-4.5m0 0l-4.5 4.5M12 3v13.5" /></svg> Dashboard</button></li>
+    <li><button data-section="form" data-title="Add"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> Add </button></li>
+    <li><button data-section="report" data-title="All Data" class="nav-btn"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12a.75.75 0 01.75-.75h14.25a.75.75 0 010 1.5H4.5a.75.75 0 01-.75-.75zM3.75 6a.75.75 0 01.75-.75h14.25a.75.75 0 010 1.5H4.5a.75.75 0 01-.75-.75zm0 12a.75.75 0 01.75-.75h14.25a.75.75 0 010 1.5H4.5a.75.75 0 01-.75-.75z" /></svg> All Data</button></li>
+    <li><button data-section="vgm" data-title="VGM" class="nav-btn"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.65 2.5a.75.75 0 01-.7 1.1h-14a.75.75 0 01-.7-1.1L3.75 7.5m16.5 0H3.75m16.5 0l-.54 2.16m-16.5-2.16l.54 2.16m16.5-2.16V6.75a1.5 1.5 0 00-1.5-1.5H5.25A1.5 1.5 0 003.75 6.75v10.5a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5V7.5zM12 12V9.75" /></svg> VGM</button></li>
+    <li>
+      <button id="nav-settings-toggle"><svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.438.995s.145.755.438.995l1.003.827c.485.4.665 1.07.26 1.431l-1.296 2.247a1.125 1.125 0 01-1.37.49l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.063-.374-.313-.686-.645-.87a6.52 6.52 0 01-.22-.127c-.324-.196-.72-.257-1.075-.124l-1.217.456a1.125 1.125 0 01-1.37-.49l-1.296-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.437-.995s-.145-.755-.437-.995l-1.004-.827a1.125 1.125 0 01-.26-1.431l1.296-2.247a1.125 1.125 0 011.37-.49l1.217.456c.355.133.75.072 1.076.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg> Settings ▼</button>
+      <div id="settingsMenu">
+        <button data-section="crudPic" data-title="Settings: PIC">🧑‍💼 PIC</button>
+        <button data-section="crudCurr" data-title="Settings: Currency">💱 Currency</button>
+        <button data-section="crudIncoterms" data-title="Settings: Incoterms">📦 Incoterms</button>
+        <button data-section="crudNotul" data-title="Settings: Notul">📝 Notul</button>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<main class="main-content" id="mainContent">
+  <header class="page-header">
+    <button class="toggle-btn" id="toggleBtn">☰</button>
+    <h1 class="page-title" id="pageTitle">Dashboard</h1>
+  </header>
+
+  <section class="page-section active" id="dashboard">
+      <div class="dashboard-grid">
+          <div class="stat-cards-row">
+            <div class="stat-card">
+              <div class="icon-wrapper">📦</div>
+              <div><h3>Total PEB Data</h3><p class="stat-total-peb">0</p></div>
+            </div>
+            <div class="stat-card">
+              <div class="icon-wrapper">📅</div>
+              <div><h3>PEB This Month</h3><p class="stat-this-month">0</p></div>
+            </div>
+            <div class="stat-card">
+              <div class="icon-wrapper">🗓️</div>
+              <div><h3>Last PEB Date</h3><p class="stat-last-date stat-value-date">-</p></div>
+            </div>
+          </div>
+          
+          <div class="pic-task-card" id="picTaskContainer">
+            <h3>PIC Tasks (Not Completed)</h3> 
+            <ul class="pic-task-list" id="picTaskList">
+            </ul>
+          </div>
+
+          <div class="chart-card">
+              <h3>PEB Status Overview (<span id="totalPebCountTitle">0</span> Total)</h3>
+              <div id="statusChartContainer">
+                  <canvas id="statusChart"></canvas>
+              </div>
+          </div>
+          
+          <div class="chart-card" id="incotermsChartContainer">
+            <h3>Incoterms Distribution</h3>
+            <div id="incotermsChartWrapper">
+                <canvas id="incotermsChart"></canvas>
+            </div>
+          </div>
+          
+          <div class="chart-card" id="monthlyChartContainer">
+              <h3>Monthly PEB Trends</h3>
+              <canvas id="monthlyChart"></canvas>
+          </div>
+      </div>
+  </section>
+
+  <section class="page-section card" id="form">
+    <form id="pebForm">
+      <div class="form-grid">
+        <div class="form-field"><label for="noDn">Delivery (NO DN)</label><input type="text" id="noDn" name="noDn" required></div>
+        <div class="form-field"><label for="vbiDate">VBI2 Date</label><input type="date" id="vbiDate" name="vbiDate"></div>
+        <div class="form-field"><label for="etdMill">ETD Mill</label><input type="date" id="etdMill" name="etdMill"></div>
+        <div class="form-field"><label for="notul">Notul</label><select id="notul" name="notul"></select></div>
+        <div class="form-field"><label for="bookRef">Book Ref Number</label><input type="text" id="bookRef" name="bookRef"></div>
+        <div class="form-field"><label for="shipTo">Ship to Party Name</label><input type="text" id="shipTo" name="shipTo"></div>
+        <div class="form-field"><label for="importer">Importer Name</label><input type="text" id="importer" name="importer"></div>
+        <div class="form-field"><label for="country">Country Destination</label><input type="text" id="country" name="country"></div>
+        <div class="form-field"><label for="shippingLine">Shipping Line</label><input type="text" id="shippingLine" name="shippingLine"></div>
+        <div class="form-field"><label for="incoterms">Incoterms</label><select id="incoterms" name="incoterms"></select></div>
+        <div class="form-field"><label for="freightCurr">Freight Currency</label><select id="freightCurr" name="freightCurr"></select></div>
+        <div class="form-field"><label for="freightCost">Freight Cost</label><input type="text" id="freightCost" name="freightCost"></div>
+        <div class="form-field"><label for="pic">PIC Proforma Invoice</label><select id="pic" name="pic"></select></div>
+        <div class="form-field"><label for="lastPi">Last PI</label><input type="text" id="lastPi" name="lastPi"></div>
+        <div class="form-field"><label for="vlegalNum">V-LEGAL NUMB</label><input type="text" id="vlegalNum" name="vlegalNum"></div>
+        <div class="form-field"><label for="vlegalDate">V-LEGAL DATE</label><input type="date" id="vlegalDate" name="vlegalDate"></div>
+        <div class="form-field"><label for="ispm">ISPM CERT</label><input type="text" id="ispm" name="ispm"></div>
+        <div class="form-field"><label for="aju">AJU</label><input type="text" id="aju" name="aju"></div>
+        <div class="form-field"><label for="pebNum">PEB NUMB</label><input type="text" id="pebNum" name="pebNum"></div>
+        <div class="form-field"><label for="pebDate">PEB DATE</label><input type="date" id="pebDate" name="pebDate"></div>
+        <div class="form-field"><label for="vgmDate">VGM Date</label><input type="date" id="vgmDate" name="vgmDate"></div>
+        <div class="form-field"><label for="soldTo">Sold-to Party Name</label><input type="text" id="soldTo" name="soldTo"></div>
+        <div class="form-field"><label for="sendPeb">SEND PEB NPE TO EMKL</label><input type="date" id="sendPeb" name="sendPeb"></div>
+      </div>
+      <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="cancelEditBtn" style="display: none;">✖️ Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveBtn">✅ Save Data</button>
+      </div>
+    </form>
+    <div class="upload-section">
+      <div class="upload-box">
+        <h3>Or, Upload from Excel</h3>
+        <p>Ensure your Excel file column names match the template. <a href="#" id="templateLink">⬇️ Download Template</a></p>
+        <input type="file" id="excelFile" accept=".xlsx, .xls"><br>
+        <button class="btn btn-primary" id="uploadBtn">📤 Upload</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="page-section card" id="report">
+    
+    <div class="dashboard-stats" style="margin-bottom: 30px;">
+      <div class="stat-card">
+        <div class="icon-wrapper">📦</div>
+        <div><h3>Total PEB Data</h3><p class="stat-total-peb">0</p></div>
+      </div>
+      <div class="stat-card">
+        <div class="icon-wrapper">📅</div>
+        <div><h3>PEB This Month</h3><p class="stat-this-month">0</p></div>
+      </div>
+      <div class="stat-card">
+        <div class="icon-wrapper">🗓️</div>
+        <div><h3>Last PEB Date</h3><p class="stat-last-date stat-value-date">-</p></div> 
+      </div>
+    </div>
+
+    <div class="table-actions">
+        <input type="text" id="searchInput" placeholder="Search data...">
+        <button class="btn btn-secondary" id="deleteSelectedBtn" style="display:none;">🗑️ Delete Selected</button>
+        <span id="selectedCount" style="display:none; font-weight: bold;"></span>
+        <button class="btn btn-secondary" id="exportExcelBtn">📄 Export to Excel</button>
+    </div>
+    <div class="table-container">
+      <table id="logTable">
+        <thead>
+          <tr>
+            <th class="sticky-col sticky-col-1"><input type="checkbox" id="selectAll"></th>
+            <th class="sortable" data-column="status">Status<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="noDn">Delivery<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="vbiDate">VBI2 Date<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="deadline">Deadline<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="etdMill">ETD Mill<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="notul">Notul<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="bookRef">Book Ref Number<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="shipTo">Ship to Party name<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="soldTo">Sold-to Party name<span class="sort-indicator"></span></th> 
+            <th class="sortable" data-column="importer">Importer Name<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="country">Country Destination<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="shippingLine">Shipping Line<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="incoterms">Incoterms<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="freightCurr">Freight Curr<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="freightCost">Freight Cost<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="pic">PIC Proforma Invoice<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="lastPi">Last PI<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="vlegalNum">V-LEGAL NUMB<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="vlegalDate">V-LEGAL DATE<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="ispm">ISPM CERT<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="aju">AJU<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="pebNum">PEB NUMB<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="pebDate">PEB DATE<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="vgmDate">VGM<span class="sort-indicator"></span></th>
+            <th class="sortable" data-column="sendPeb">SEND PEB NPE TO EMKL<span class="sort-indicator"></span></th>
+            <th class="sticky-col sticky-col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="page-section card" id="vgm">
+      <div class="crud-container">
+          <h2>VGM Shipping Line</h2>
+          <p>Silakan unduh template (format .csv) untuk shipping line yang Anda butuhkan.</p>
+          
+          <ul class="vgm-download-list">
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+               <a href="01.HAPAG.xls" class="vgm-download-link" download="02. ONE.xls - Sheet1.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>01. HAPAG</span>
+              </a>
+            </li>
+              <a href="02.ONE.xls" class="vgm-download-link" download="02. ONE.xls - Sheet1.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>02. ONE</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="03.COSCO.xls" class="vgm-download-link" download="03. COSCO.xls - Sheet1.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>03. COSCO</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="04.MAERSK.xls" class="vgm-download-link" download="04. MAERSK.xls - Sheet1.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>04. MAERSK</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="05.MSC.xlsx" class="vgm-download-link" download="05. MSC.xlsx - VGM.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>05. MSC</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="06.PIL.xlsm" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>06. PIL</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="07.CMACGM.xlsx" class="vgm-download-link" download="05. MSC.xlsx - Country_UN_CODE.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>07. CMA CGM</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="08.RCL.xls" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>08. RCL</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="09.KMTC.xls" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>09. KMTC</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="11.EVERGREEN.xlsx" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>11. EVERGREEN</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="12.OOCL.xlsx" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>12. OOCL</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="13.HEUNG A.xls" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>13. HEUNG A</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="14.HYUNDAI.xls" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>14. HYUNDAI</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="15.YANGMING.xlsx" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>15. YANGMING</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="16.ZIM_Gold_Star_Line.xlsx" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>16. ZIM GOLD STAR LINE</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="17.SAMIN.xls" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>17. SAMIN</span>
+              </a>
+            </li>
+            <li class="vgm-download-item">
+              <!-- PERBAIKAN: Menggunakan href langsung dan atribut download -->
+              <a href="19.SINOKOR.xls" class="vgm-download-link" download="05. MSC.xlsx - Method.csv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                <span>19. SINOKOR</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+  </section>
+
+  <section class="page-section crud-container card" id="crudPic">
+    <h2>Settings: PIC</h2>
+    <div class="crud-header">
+      <input type="text" id="newPic" placeholder="Add New PIC Number">
+      <button class="btn btn-primary" data-type="pic">➕ Add</button>
+    </div>
+    <div class="crud-list-container">
+      <div class="crud-list-header">
+          <span class="item-name">PIC</span>
+          <span class="item-date">Date Added</span>
+          <span class="item-actions">Actions</span>
+      </div>
+      <ul class="crud-list" id="picList"></ul>
+    </div>
+  </section>
+  <section class="page-section crud-container card" id="crudCurr">
+    <h2>Settings: Currency</h2>
+    <div class="crud-header">
+      <input type="text" id="newCurr" placeholder="Add New Currency (e.g., USD)">
+      <button class="btn btn-primary" data-type="curr">➕ Add</button>
+    </div>
+    <div class="crud-list-container">
+      <div class="crud-list-header"><span class="item-name">Name</span><span class="item-date">Date Added</span><span class="item-actions">Actions</span></div>
+      <ul class="crud-list" id="currList"></ul>
+    </div>
+  </section>
+  <section class="page-section crud-container card" id="crudIncoterms">
+    <h2>Settings: Incoterms</h2>
+    <div class="crud-header">
+      <input type="text" id="newIncoterms" placeholder="Add New Incoterm (e.g., FOB)">
+      <button class="btn btn-primary" data-type="incoterms">➕ Add</button>
+    </div>
+    <div class="crud-list-container">
+      <div class="crud-list-header"><span class="item-name">Name</span><span class="item-date">Date Added</span><span class="item-actions">Actions</span></div>
+      <ul class="crud-list" id="incotermsList"></ul>
+    </div>
+  </section>
+  <section class="page-section crud-container card" id="crudNotul">
+    <h2>Settings: Notul</h2>
+    <div class="crud-header">
+      <input type="text" id="newNotul" placeholder="Add New Notul Option (e.g., Yes)">
+      <button class="btn btn-primary" data-type="notul">➕ Add</button>
+    </div>
+    <div class="crud-list-container">
+      <div class="crud-list-header"><span class="item-name">Name</span><span class="item-date">Date Added</span><span class="item-actions">Actions</span></div>
+      <ul class="crud-list" id="notulList"></ul>
+    </div>
+  </section>
+</main>
+
+<div id="toast"></div>
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-analytics.js";
+  import { getDatabase, ref, push, onValue, remove, set } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js";
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyClUILN7lcUcTOxVkZTKt-DAWL1_JRrcTg",
+    authDomain: "monitoring-dn-peb.firebaseapp.com",
+    databaseURL: "https://monitoring-dn-peb-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "monitoring-dn-peb",
+    storageBucket: "monitoring-dn-peb.firebasestorage.app",
+    messagingSenderId: "747764456035",
+    appId: "1:747764456035:web:26da29d90ff41a12c4b656",
+    measurementId: "G-7WS051M5J1"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getDatabase(app);
+  
+  Chart.register(ChartDataLabels);
+  
+  let currentEditId = null;
+  let dnPebData = [];
+  let sortColumn = null;
+  let sortDirection = 'asc';
+  
+  let statusChartInstance = null;
+  let monthlyChartInstance = null;
+  let incotermsChartInstance = null;
+  
+  // === PERUBAHAN: Peta untuk menyimpan ID Firebase berdasarkan No DN ===
+  let deliveryNoToIdMap = {};
+  
+  const pebForm = document.getElementById('pebForm');
+
+  const showToast = (message) => {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.className = "show";
+    setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+  };
+
+ const showSection = (sectionId, title) => {
+    document.querySelectorAll(".page-section").forEach(sec => sec.classList.remove("active"));
+    const sectionElement = document.getElementById(sectionId);
+    if (sectionElement) sectionElement.classList.add("active");
+    else console.warn(`Section with ID "${sectionId}" not found.`); 
+    
+    document.getElementById("pageTitle").textContent = title;
+    
+    document.querySelectorAll(".sidebar-menu button").forEach(btn => btn.classList.remove('active'));
+    
+    const navButton = document.querySelector(`button[data-section="${sectionId}"]`);
+    if (navButton) {
+      navButton.classList.add('active');
+      if (navButton.closest('#settingsMenu')) {
+        document.getElementById('nav-settings-toggle')?.classList.add('active');
+      }
+    } else if (sectionId.startsWith('crud')) { 
+        document.getElementById('nav-settings-toggle')?.classList.add('active');
+    }
+
+     // Tampilkan/sembunyikan stats berdasarkan halaman
+     document.querySelectorAll('.dashboard-stats').forEach(el => {
+         el.style.display = (sectionId === 'report' || sectionId === 'dashboard') ? 'grid' : 'none';
+     });
+  };
+
+
+  const settingsConfig = {
+    pic: { path: "settings/pic", listEl: "picList", inputEl: "newPic", dropdownEl: "pic" },
+    curr: { path: "settings/currency", listEl: "currList", inputEl: "newCurr", dropdownEl: "freightCurr" },
+    incoterms: { path: "settings/incoterms", listEl: "incotermsList", inputEl: "newIncoterms", dropdownEl: "incoterms" },
+    notul: { path: "settings/notul", listEl: "notulList", inputEl: "newNotul", dropdownEl: "notul" },
+  };
+  let picDataMap = {}; 
+
+  const listenToSettings = (type) => {
+    onValue(ref(db, settingsConfig[type].path), (snapshot) => {
+      const data = [];
+      snapshot.forEach(child => {
+        data.push({ id: child.key, ...child.val() });
+      });
+      data.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+
+      if (type === 'pic') {
+        picDataMap = data.reduce((map, item) => {
+          map[item.name] = item;
+          return map;
+        }, {});
+      }
+
+      renderSettingsList(type, data);
+      updateDropdowns(type, [...data].sort((a, b) => a.name.localeCompare(b.name)));
+    });
+  };
+
+  const formatSettingDate = (isoString) => {
+      if (!isoString) return '-';
+      try { return new Date(isoString).toLocaleDateString('en-GB'); } catch (e) { return '-'; }
+  };
+
+  const renderSettingsList = (type, data) => {
+      const { listEl } = settingsConfig[type];
+      const listElement = document.getElementById(listEl);
+      if (!listElement) return;
+
+      if (data.length === 0) {
+        listElement.innerHTML = `<li style="justify-content: center;">No items added yet.</li>`;
+        return;
+      }
+      
+      listElement.innerHTML = data.map(item => `
+            <li>
+              <span class="item-name">${item.name}</span>
+              <span class="item-date">${formatSettingDate(item.createdAt)}</span>
+              <div class="item-actions">
+                <button class="action-btn delete-setting" data-type="${type}" data-id="${item.id}">🗑️</button>
+              </div>
+            </li>`
+      ).join('');
+  };
+  
+  const updateDropdowns = (type, data) => {
+    const { dropdownEl } = settingsConfig[type];
+    const select = document.getElementById(dropdownEl);
+    if (!select) return;
+    const defaultOptionText = { 
+        pic: "Select PIC", 
+        curr: "Select Currency", 
+        incoterms: "Select Incoterms",
+        notul: "Select Notul Option"
+    }[type];
+    select.innerHTML = `<option value="">${defaultOptionText}</option>`;
+    data.forEach(item => { select.innerHTML += `<option value="${item.name}">${item.name}</option>`; });
+  };
+  
+  const addSettingItem = (type) => {
+    const { path, inputEl } = settingsConfig[type];
+    const input = document.getElementById(inputEl);
+    const value = input.value.trim();
+    if (!value) { showToast(`Please enter a ${type} value.`); return; }
+    
+    let newItem = { name: value, createdAt: new Date().toISOString() };
+    
+    push(ref(db, path), newItem)
+      .then(() => { 
+          input.value = ""; 
+          showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} added successfully.`);
+      })
+      .catch(error => { console.error(`Failed to save to Firebase:`, error); showToast("Failed to save data."); });
+  };
+
+  const deleteSettingItem = (type, id) => {
+     if (!confirm("Are you sure you want to delete this item?")) return;
+     remove(ref(db, `${settingsConfig[type].path}/${id}`))
+       .then(() => showToast("Item deleted successfully."))
+       .catch(e => { console.error("Firebase Error:", e); showToast("Failed to delete item."); });
+  };
+  
+  const sortData = (column) => {
+    sortDirection = (sortColumn === column && sortDirection === 'asc') ? 'desc' : 'asc';
+    sortColumn = column;
+    dnPebData.sort((a, b) => {
+        let valA = a[column] || '';
+        let valB = b[column] || '';
+        if (column === 'deadline') { valA = a.deadlineValue; valB = b.deadlineValue; }
+        
+        const isDate = ['vbiDate', 'etdMill', 'vlegalDate', 'pebDate', 'vgmDate', 'sendPeb'].includes(column);
+        const isNumeric = ['freightCost', 'pic'].includes(column); 
+        
+        let comparison = 0;
+        if (isDate) {
+            const dateA = valA ? new Date(valA) : null;
+            const dateB = valB ? new Date(valB) : null;
+            if (dateA && dateB && !isNaN(dateA.getTime()) && !isNaN(dateB.getTime())) {
+                comparison = dateA - dateB;
+            } else if (dateA && !isNaN(dateA.getTime())) {
+                comparison = -1; 
+            } else if (dateB && !isNaN(dateB.getTime())) {
+                comparison = 1; 
+            } else {
+                comparison = 0; 
+            }
+        } else if (isNumeric) {
+             comparison = parseFloat(String(valA).replace(/,/g, '') || 0) - parseFloat(String(valB).replace(/,/g, '') || 0);
+        } else { 
+            comparison = String(valA).localeCompare(String(valB));
+        }
+        return sortDirection === 'asc' ? comparison : -comparison;
+    });
+    handleSearch();
+    updateSortIndicators();
+  };
+  
+  const updateSortIndicators = () => {
+    document.querySelectorAll('th.sortable .sort-indicator').forEach(span => { span.textContent = ''; });
+    if (sortColumn) {
+        const header = document.querySelector(`th[data-column="${sortColumn}"] .sort-indicator`);
+        if (header) header.textContent = sortDirection === 'asc' ? ' ▲' : ' ▼';
+    }
+  };
+
+  const formatDateForDisplay = (dateString) => {
+    if (!dateString) return '-';
+    try {
+        const parts = String(dateString).split('-');
+        if (parts.length === 3) {
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1; 
+            const day = parseInt(parts[2], 10);
+            const date = new Date(year, month, day); 
+            if (!isNaN(date.getTime()) && date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
+               return date.toLocaleDateString('en-GB'); 
+            }
+        }
+        const date = new Date(dateString);
+        if (!isNaN(date.getTime())) {
+             return date.toLocaleDateString('en-GB');
+        }
+        return '-'; 
+    } catch (e) { 
+        console.error("Error formatting date for display:", dateString, e);
+        return '-'; 
+    }
+  };
+  
+  const updateDashboardStats = (data) => {
+    const totalCount = data.length;
+    const now = new Date();
+    const pebThisMonth = data.filter(item => {
+        if (!item.pebDate) return false;
+        const pebDate = new Date(item.pebDate);
+        return !isNaN(pebDate.getTime()) && pebDate.getMonth() === now.getMonth() && pebDate.getFullYear() === now.getFullYear();
+    }).length;
+    
+    const lastPeb = data.reduce((latest, item) => {
+        const pebDate = item.pebDate ? new Date(item.pebDate) : null;
+        return (pebDate && !isNaN(pebDate.getTime()) && (!latest || pebDate > latest)) ? pebDate : latest;
+    }, null);
+    const lastPebText = lastPeb ? formatDateForDisplay(lastPeb.toISOString().split('T')[0]) : '-'; 
+
+    document.querySelectorAll('.stat-total-peb').forEach(el => el.textContent = totalCount);
+    document.querySelectorAll('.stat-this-month').forEach(el => el.textContent = pebThisMonth);
+    document.querySelectorAll('.stat-last-date').forEach(el => el.textContent = lastPebText);
+    
+    const chartTitle = document.getElementById('totalPebCountTitle');
+    if (chartTitle) chartTitle.textContent = totalCount;
+  };
+
+  const updatePicTasks = (data) => {
+    const incompleteTasksByPic = data
+        .filter(item => item.status !== 'Completed' && item.pic) 
+        .reduce((acc, task) => {
+            acc[task.pic] = (acc[task.pic] || 0) + 1;
+            return acc;
+        }, {});
+    
+    const picTaskList = document.getElementById('picTaskList');
+    if (!picTaskList) return;
+
+    const sortedPics = Object.keys(incompleteTasksByPic).sort((a, b) => incompleteTasksByPic[b] - incompleteTasksByPic[a]);
+
+    if (sortedPics.length === 0) {
+        picTaskList.innerHTML = `<li style="justify-content: center; color: #6c757d;">No tasks currently needing action.</li>`;
+        return;
+    }
+
+    picTaskList.innerHTML = sortedPics.map(picName => {
+        const count = incompleteTasksByPic[picName];
+        return `
+            <li>
+                <div class="pic-info">PIC ${picName}</div>
+                <div class="pic-task-count">${count}</div>
+            </li>
+        `;
+    }).join('');
+  };
+  
+  const getRandomColor = () => {
+      const r = Math.floor(Math.random() * 220); 
+      const g = Math.floor(Math.random() * 220);
+      const b = Math.floor(Math.random() * 220);
+      return `rgba(${r}, ${g}, ${b}, 0.7)`;
+  };
+  
+  const updateCharts = (data) => {
+    // 1. Chart Status PEB
+    const statusCounts = data.reduce((acc, item) => { acc[item.status] = (acc[item.status] || 0) + 1; return acc; }, {});
+    const statusData = {
+        labels: ['Completed', 'Notul', 'Incomplete'],
+        datasets: [{
+            data: [ statusCounts['Completed'] || 0, statusCounts['Notul'] || 0, statusCounts['Incomplete'] || 0 ],
+            backgroundColor: ['#28a745', '#007BFF', '#dc3545'], 
+            hoverOffset: 4
+        }]
+    };
+    if (statusChartInstance) statusChartInstance.destroy();
+    statusChartInstance = new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut', data: statusData,
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' },
+                datalabels: {
+                    display: (context) => context.dataset.data[context.dataIndex] > 0,
+                    formatter: (value) => value,
+                    color: '#fff', 
+                    font: { weight: 'bold', size: 12 } 
+                }
+            }
+        }
+    });
+    
+    // 2. Chart PEB Bulanan
+    const monthlyCounts = Array(12).fill(0);
+    const currentYear = new Date().getFullYear();
+    data.forEach(item => {
+        if (item.pebDate) {
+            const pebDate = new Date(item.pebDate);
+            if (!isNaN(pebDate.getTime()) && pebDate.getFullYear() === currentYear) {
+               monthlyCounts[pebDate.getMonth()]++;
+            }
+        }
+    });
+    const monthlyData = {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [{
+            label: `PEB Count for ${currentYear}`, data: monthlyCounts,
+            fill: false, borderColor: '#007BFF', tension: 0.1
+        }]
+    };
+    if (monthlyChartInstance) monthlyChartInstance.destroy();
+    monthlyChartInstance = new Chart(document.getElementById('monthlyChart'), {
+        type: 'line', data: monthlyData,
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+            plugins: {
+                datalabels: {
+                    display: (context) => context.dataset.data[context.dataIndex] > 0,
+                    anchor: 'end', align: 'top', color: '#333',
+                    font: { weight: 'bold', size: 11 }, 
+                    padding: { top: 6 }
+                }
+            }
+        }
+    });
+
+    // 3. Chart Incoterms
+    const incotermsCounts = data.reduce((acc, item) => { const incoterm = item.incoterms || 'N/A'; acc[incoterm] = (acc[incoterm] || 0) + 1; return acc; }, {});
+    const incotermLabels = Object.keys(incotermsCounts);
+    const incotermData = Object.values(incotermsCounts);
+    const incotermColors = incotermLabels.map(() => getRandomColor());
+    const incotermsChartData = {
+        labels: incotermLabels,
+        datasets: [{ data: incotermData, backgroundColor: incotermColors, hoverOffset: 4 }]
+    };
+    if (incotermsChartInstance) incotermsChartInstance.destroy();
+    incotermsChartInstance = new Chart(document.getElementById('incotermsChart'), {
+        type: 'doughnut', data: incotermsChartData,
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top', labels: { padding: 10 } },
+                datalabels: {
+                    display: (context) => context.dataset.data[context.dataIndex] > 0,
+                    formatter: (value) => value,
+                    color: '#fff', 
+                    font: { weight: 'bold', size: 12 } 
+                }
+            }
+        }
+    });
+  };
+  
+  const processData = (rawData) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const requiredFields = ['noDn','vbiDate','etdMill','bookRef','shipTo','importer','country','shippingLine','incoterms','freightCurr','freightCost','pic','lastPi','vlegalNum','vlegalDate','ispm','aju','pebNum','pebDate','vgmDate','notul','soldTo','sendPeb'];
+    const requiredFieldsForFOB = requiredFields.filter(field => field !== 'freightCurr' && field !== 'freightCost');
+
+    return rawData.map(row => {
+        let deadlineValue = Infinity;
+        if (row.etdMill) {
+            const etdDate = new Date(row.etdMill);
+            if (!isNaN(etdDate.getTime())) { 
+                deadlineValue = (etdDate - today) / (1000 * 60 * 60 * 24);
+            }
+        }
+        
+        let status = '';
+        if (row.notul && String(row.notul).toLowerCase().startsWith('yes')) {
+            status = 'Notul';
+        } else {
+            let fieldsToCheck;
+            if (row.incoterms && String(row.incoterms).toUpperCase() === 'FOB') {
+                fieldsToCheck = requiredFieldsForFOB; 
+            } else {
+                fieldsToCheck = requiredFields; 
+            }
+            
+            const isComplete = fieldsToCheck.every(field => {
+                 return row[field] !== null && row[field] !== undefined && String(row[field]).trim() !== '';
+            });
+            
+            status = isComplete ? 'Completed' : 'Incomplete';
+        }
+        
+        return { ...row, deadlineValue, status };
+    });
+  }
+
+  // === PERUBAHAN: listenToPebData sekarang juga memetakan No DN ke ID ===
+  const listenToPebData = () => {
+    onValue(ref(db, 'dn_peb'), (snapshot) => {
+      const rawData = [];
+      deliveryNoToIdMap = {}; // Kosongkan peta
+      snapshot.forEach(child => { 
+          const data = child.val();
+          const id = child.key;
+          rawData.push({ id, ...data });
+          
+          // Buat map No DN -> Firebase ID for quick lookups
+          if (data.noDn) {
+            deliveryNoToIdMap[String(data.noDn)] = id;
+          }
+      });
+      
+      dnPebData = processData(rawData); 
+      
+      updateDashboardStats(dnPebData);
+      updateCharts(dnPebData); 
+      updatePicTasks(dnPebData);
+      
+      if (sortColumn) sortData(sortColumn); 
+      else handleSearch(); 
+      
+      updateDeleteControls();
+    }, (error) => console.error("Firebase read failed:", error));
+  };
+  // ==============================================================
+  
+  const updateDeleteControls = () => {
+      const selectedCount = document.querySelectorAll('#logTable tbody .row-checkbox:checked').length;
+      document.getElementById('deleteSelectedBtn').style.display = selectedCount > 0 ? 'inline-block' : 'none';
+      document.getElementById('selectedCount').style.display = selectedCount > 0 ? 'inline-block' : 'none';
+      document.getElementById('selectedCount').textContent = `(${selectedCount} data selected)`;
+      const displayedRows = document.querySelectorAll('#logTable tbody tr').length;
+      document.getElementById('selectAll').checked = displayedRows > 0 && selectedCount === displayedRows;
+  };
+  
+  let currentlyDisplayedData = [];
+
+  const renderTable = (data) => {
+    currentlyDisplayedData = data;
+    const tbody = document.querySelector("#logTable tbody");
+    if (!tbody) return;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    tbody.innerHTML = data.length === 0 ? "<tr><td colspan='27' style='text-align:center; padding: 40px;'>No data available.</td></tr>" : 
+      data.map(row => {
+        let deadlineDisplay = '-';
+        let deadlineClass = '';
+        
+        if (row.etdMill) {
+            try {
+                const etdDate = new Date(row.etdMill);
+                etdDate.setHours(0,0,0,0); 
+                if(!isNaN(etdDate.getTime())) {
+                    const diffTime = etdDate - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+
+                    if (diffDays > 0) {
+                        deadlineDisplay = `H-${diffDays}`;
+                    } else if (diffDays === 0) {
+                        deadlineDisplay = 'H (Today)';
+                    } else {
+                        deadlineDisplay = `H+${Math.abs(diffDays)}`;
+                        deadlineClass = 'overdue';
+                    }
+                }
+            } catch(e) { console.error("Error parsing etdMill in renderTable:", row.etdMill, e); }
+        }
+        
+        const notulContent = row.notul || '-';
+        const notulStyle = notulContent.toLowerCase().startsWith('yes') ? 'style="color: var(--red-color); font-weight: 600;"' : '';
+        const statusClass = `status-${row.status.toLowerCase().replace(' ', '-')}`;
+
+        return `
+        <tr>
+          <td class="sticky-col sticky-col-1"><input type="checkbox" data-id="${row.id}" class="row-checkbox"></td>
+          <td class="${statusClass}">${row.status}</td>
+          <td>${row.noDn||'-'}</td>
+          <td>${formatDateForDisplay(row.vbiDate)}</td>
+          <td class="${deadlineClass}">${deadlineDisplay}</td>
+          <td>${formatDateForDisplay(row.etdMill)}</td>
+          <td ${notulStyle}>${notulContent}</td>
+          <td>${row.bookRef||'-'}</td>
+          <td>${row.shipTo||'-'}</td>
+          <td>${row.soldTo||'-'}</td> 
+          <td>${row.importer||'-'}</td>
+          <td>${row.country||'-'}</td>
+          <td>${row.shippingLine||'-'}</td>
+          <td>${row.incoterms||'-'}</td>
+          <td>${row.freightCurr||'-'}</td>
+          <td>${row.freightCost||'-'}</td>
+          <td>${row.pic||'-'}</td>
+          <td>${row.lastPi||'-'}</td>
+          <td>${row.vlegalNum||'-'}</td>
+          <td>${formatDateForDisplay(row.vlegalDate)}</td>
+          <td>${row.ispm||'-'}</td>
+          <td>${row.aju||'-'}</td>
+          <td>${row.pebNum||'-'}</td>
+          <td>${formatDateForDisplay(row.pebDate)}</td>
+          <td>${row.vgmDate ? formatDateForDisplay(row.vgmDate) : '-'}</td>
+          <td>${formatDateForDisplay(row.sendPeb)}</td>
+          <td class="sticky-col sticky-col-actions">
+            <button class="action-btn edit-row" data-id="${row.id}">✏️</button>
+            <button class="action-btn delete-row" data-id="${row.id}">🗑️</button>
+          </td>
+        </tr>`;
+      }).join('');
+  };
+
+  const handleSearch = () => {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const filteredData = dnPebData.filter(row => 
+        Object.values(row).some(value => String(value).toLowerCase().includes(searchTerm))
+    );
+    renderTable(filteredData);
+  }
+
+  const resetFormState = () => {
+    currentEditId = null;
+    pebForm.reset();
+    document.getElementById('saveBtn').textContent = '✅ Save Data';
+    document.getElementById('cancelEditBtn').style.display = 'none';
+    showSection("report", "All Data");
+  };
+
+  const startEditRow = (id) => {
+    const rowData = dnPebData.find(row => row.id === id);
+    if (!rowData) return;
+    currentEditId = id;
+    Object.keys(rowData).forEach(key => {
+        const el = document.getElementById(key);
+        if (el && el.type === 'date') {
+           el.value = rowData[key] ? rowData[key].split('T')[0] : '';
+        } else if (el) {
+           el.value = rowData[key] || '';
+        }
+    });
+    document.getElementById('saveBtn').textContent = '🔄 Update Data';
+    document.getElementById('cancelEditBtn').style.display = 'inline-flex';
+    showSection('form', 'Edit PEB Data');
+  };
+  
+  const saveOrUpdateRow = (event) => {
+    event.preventDefault();
+    const data = Object.fromEntries(new FormData(pebForm));
+    
+    // Validasi Delivery Number (hanya saat menambah data baru)
+    if (!currentEditId && data.noDn) {
+        // Gunakan map untuk cek duplikat
+        const exists = deliveryNoToIdMap[String(data.noDn)];
+        if (exists) {
+            showToast("⚠️ Nomor Delivery sudah ada! Tidak dapat menyimpan data duplikat.");
+            document.getElementById('noDn').focus();
+            return; 
+        }
+    }
+    
+    if (data.freightCost) {
+      const costValue = parseFloat(String(data.freightCost).replace(',', '.'));
+      if (isNaN(costValue)) { 
+          showToast("Freight Cost harus berupa angka."); 
+          document.getElementById('freightCost').focus();
+          return; 
+      }
+      data.freightCost = costValue;
+    } else { 
+      data.freightCost = null; 
+    }
+    
+    if (!data.noDn) { 
+        showToast("Delivery (NO DN) wajib diisi."); 
+        document.getElementById('noDn').focus();
+        return; 
+    }
+    
+    data.bookRef = String(data.bookRef || '').trim();
+
+    const promise = currentEditId ? set(ref(db, `dn_peb/${currentEditId}`), data) : push(ref(db, 'dn_peb'), data);
+    promise.then(() => { 
+               resetFormState(); 
+               showToast("Data berhasil disimpan!"); 
+           })
+           .catch(e => { 
+               console.error("Firebase Error:", e); 
+               showToast("Gagal menyimpan data."); 
+           });
+  };
+
+  const deleteRow = (id) => {
+    if (!confirm("Are you sure you want to delete this data?")) return;
+    remove(ref(db, `dn_peb/${id}`)).then(() => showToast("Data deleted."))
+      .catch(e => { console.error("Firebase Error:", e); showToast("Failed to delete data."); });
+  };
+
+  const deleteSelectedRows = () => {
+      const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.dataset.id);
+      if (selectedIds.length === 0 || !confirm(`Delete ${selectedIds.length} selected items?`)) return;
+      const promises = selectedIds.map(id => remove(ref(db, `dn_peb/${id}`)));
+      Promise.all(promises)
+          .then(() => showToast(`${selectedIds.length} items deleted.`))
+          .catch(e => { console.error("Bulk delete error:", e); showToast("Failed to delete some items."); });
+  };
+  
+  const columnMapForTemplate = {
+    'Delivery':'noDn', 'VBI2 Date':'vbiDate', 'ETD Mill':'etdMill', 'Notul':'notul', 
+    'Book Ref Number':'bookRef', 'Ship to Party name':'shipTo', 'Sold-to Party name':'soldTo', 
+    'Importer Name':'importer', 'Country Destination':'country', 'Shipping Line':'shippingLine', 
+    'Incoterms':'incoterms', 'Freight Curr':'freightCurr', 'Freight Cost':'freightCost', 
+    'PIC Proforma Invoice':'pic', 'Last PI':'lastPi', 'V-LEGAL NUMB':'vlegalNum', 
+    'V-LEGAL DATE':'vlegalDate', 'ISPM CERT':'ispm', 'AJU':'aju', 'PEB NUMB':'pebNum', 
+    'PEB DATE':'pebDate', 'VGM':'vgmDate', 'SEND PEB NPE TO EMKL':'sendPeb'
+  };
+
+  function parseExcelDate(value) {
+      let formattedDate = null;
+      if (typeof value === 'string') {
+          // Coba format dd.mm.yyyy
+          const partsDot = value.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/); 
+          if (partsDot) {
+              const day = parseInt(partsDot[1], 10);
+              const month = parseInt(partsDot[2], 10); 
+              const year = parseInt(partsDot[3], 10);
+              if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+                  const date = new Date(year, month - 1, day); 
+                  if (date && date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day) {
+                      const finalMonth = String(month).padStart(2, '0');
+                      const finalDay = String(day).padStart(2, '0');
+                      formattedDate = `${year}-${finalMonth}-${finalDay}`;
+                  }
+              }
+          } 
+          // Coba format dd/mm/yyyy
+          else {
+              const partsSlash = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+              if (partsSlash) {
+                 const day = parseInt(partsSlash[1], 10);
+                 const month = parseInt(partsSlash[2], 10);
+                 const year = parseInt(partsSlash[3], 10);
+                 if (year > 1900 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+                     const date = new Date(year, month - 1, day);
+                     if (date && date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day) {
+                         const finalMonth = String(month).padStart(2, '0');
+                         const finalDay = String(day).padStart(2, '0');
+                         formattedDate = `${year}-${finalMonth}-${finalDay}`;
+                     }
+                 }
+              }
+          }
+      } else if (typeof value === 'number' && value > 1) { // Angka serial Excel
+          try {
+              const date = new Date(Math.round((value - 25569) * 86400 * 1000));
+              if (!isNaN(date.getTime())) {
+                  const year = date.getFullYear();
+                  const month = String(date.getMonth() + 1).padStart(2, '0');
+                  const day = String(date.getDate()).padStart(2, '0');
+                  formattedDate = `${year}-${month}-${day}`;
+              }
+          } catch(e) {
+              console.error("Error converting Excel date number:", value, e);
+          }
+      }
+      
+      if (formattedDate === null && value) {
+         try {
+           const date = new Date(value);
+            if (!isNaN(date.getTime())) {
+                 const year = date.getFullYear();
+                 if (year > 1900 && year < 2100) { 
+                     const month = String(date.getMonth() + 1).padStart(2, '0');
+                     const day = String(date.getDate()).padStart(2, '0');
+                     formattedDate = `${year}-${month}-${day}`;
+                 }
+            }
+         } catch (e) { /* Abaikan error */ }
+      }
+      
+      return formattedDate; 
+  }
+
+
+  const generateTemplate = () => {
+    const headers = [
+      'Delivery', 'VBI2 Date', 'ETD Mill', 'Notul', 'Book Ref Number', 
+      'Ship to Party name', 'Sold-to Party name', 'Importer Name', 'Country Destination', 
+      'Shipping Line', 'Incoterms', 'Freight Curr', 'Freight Cost', 'PIC Proforma Invoice', 
+      'Last PI', 'V-LEGAL NUMB', 'V-LEGAL DATE', 'ISPM CERT', 'AJU', 'PEB NUMB', 
+      'PEB DATE', 'VGM', 'SEND PEB NPE TO EMKL'
+    ];
+    const sampleRow = [
+        '80001234 (Sample)', '2025-10-17', '2025-10-24', 'No', '123456789', 
+        'Example Importer', 'Example Buyer', 'Example Importer', 'Singapore', 
+        'Example Shipping', 'FOB', 'USD', '1500.50', '123', 
+        'PI-12345', 'VLK-1234', '2025-10-16', 'ISPM-5678', 'AJU-91011', 'PEB-121314', 
+        '2025-10-20', '20.10.2025', '2025-10-21' 
+    ];
+    const data = [headers, sampleRow];
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Template");
+    XLSX.writeFile(wb, "MONITORING_PEB_Template.xlsx");
+  };
+  
+  // === PERUBAHAN LOGIKA UPLOAD EXCEL (UPDATE/ADD) ===
+  const handleExcelUpload = () => {
+      const fileInput = document.getElementById('excelFile');
+      const file = fileInput.files[0];
+      if (!file) { showToast("Please select an Excel file."); return; }
+      const uploadBtn = document.getElementById('uploadBtn');
+      uploadBtn.textContent = "Processing..."; uploadBtn.disabled = true;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+          try {
+              const workbook = XLSX.read(e.target.result, { type: 'array' });
+              // Gunakan raw: true agar kita bisa handle tipe data sendiri
+              const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { raw: true }); 
+              
+              let rowsAdded = 0;
+              let rowsUpdated = 0;
+              let duplicatesInFile = 0;
+              let parseErrors = 0;
+              const promises = [];
+              const processedDNsInFile = new Set(); // Untuk cek duplikat di DALAM file
+              const dateColumns = ['vbiDate','etdMill','vlegalDate','pebDate','vgmDate','sendPeb'];
+              
+              jsonData
+                .filter(row => row['Delivery'] && !String(row['Delivery']).includes('Sample'))
+                .forEach(item => {
+                  const deliveryNumber = String(item['Delivery']).trim(); 
+                  
+                  // 1. Cek duplikat di dalam file Excel itu sendiri
+                  if (processedDNsInFile.has(deliveryNumber)) {
+                    duplicatesInFile++;
+                    return; // Lewati baris ini
+                  }
+                  processedDNsInFile.add(deliveryNumber);
+
+                  // 2. Siapkan data baris (newRow)
+                  const newRow = {};
+                  for (const excelHeader in columnMapForTemplate) {
+                      const dbKey = columnMapForTemplate[excelHeader];
+                      const originalValue = item[excelHeader]; 
+
+                      if (originalValue !== undefined && originalValue !== null && String(originalValue).trim() !== "") {
+                          if (dateColumns.includes(dbKey)) {
+                               const formattedDate = parseExcelDate(originalValue); 
+                               newRow[dbKey] = formattedDate; 
+                               if(formattedDate === null && originalValue) { 
+                                   console.warn(`Could not parse date for ${dbKey} in Delivery ${deliveryNumber}:`, originalValue);
+                                   parseErrors++;
+                               }
+                          } else if (dbKey === 'bookRef') { 
+                              newRow[dbKey] = String(originalValue).trim(); 
+                          } else {
+                              newRow[dbKey] = typeof originalValue === 'string' ? originalValue.trim() : originalValue;
+                          }
+                      } else {
+                         newRow[dbKey] = null; 
+                      }
+                  }
+                  
+                  // 3. Cek apakah No DN sudah ada di database (via map)
+                  const existingId = deliveryNoToIdMap[deliveryNumber];
+                  
+                  if (existingId) {
+                      // UPDATE: No DN sudah ada
+                      promises.push(set(ref(db, `dn_peb/${existingId}`), newRow));
+                      rowsUpdated++;
+                  } else {
+                      // ADD: No DN baru
+                      promises.push(push(ref(db, 'dn_peb'), newRow));
+                      rowsAdded++;
+                  }
+              });
+
+              // 4. Selesaikan semua promise dan beri laporan
+              Promise.all(promises).then(results => {
+                  let message = "";
+                  if (rowsAdded > 0) message += `✅ ${rowsAdded} data baru ditambahkan. `;
+                  if (rowsUpdated > 0) message += `🔄 ${rowsUpdated} data diperbarui. `;
+                  if (duplicatesInFile > 0) {
+                      message += ` ⚠️ ${duplicatesInFile} baris duplikat di file dilewati.`;
+                  }
+                  if (parseErrors > 0) {
+                      message += ` ⚠️ ${parseErrors} kolom tanggal gagal diproses.`;
+                  }
+                  if (message === "") {
+                      message = "Tidak ada data baru atau data untuk diperbarui.";
+                  }
+                  
+                  showToast(message.trim());
+                  if (rowsAdded > 0 || rowsUpdated > 0) {
+                      showSection("report", "All Data");
+                  }
+              });
+
+          } catch (error) { console.error("File processing error:", error); showToast("Error processing file. Please check format and column names.");
+          } finally { uploadBtn.textContent = "📤 Upload"; uploadBtn.disabled = false; fileInput.value = ""; }
+      };
+      reader.readAsArrayBuffer(file);
+  };
+  // ===========================================
+  
+  const exportToExcel = () => {
+    const headersInOrder = [ 
+      'Delivery', 'VBI2 Date', 'ETD Mill', 'Notul', 'Book Ref Number', 
+      'Ship to Party name', 'Sold-to Party name', 'Importer Name', 'Country Destination', 
+      'Shipping Line', 'Incoterms', 'Freight Curr', 'Freight Cost', 'PIC Proforma Invoice', 
+      'Last PI', 'V-LEGAL NUMB', 'V-LEGAL DATE', 'ISPM CERT', 'AJU', 'PEB NUMB', 
+      'PEB DATE', 'VGM', 'SEND PEB NPE TO EMKL'
+    ];
+
+    const dataToExport = [headersInOrder, ...currentlyDisplayedData.map(row => 
+        headersInOrder.map(header => row[columnMapForTemplate[header]] || '') 
+    )];
+    const ws = XLSX.utils.aoa_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Data PEB");
+    XLSX.writeFile(wb, "Monitoring_PEB_Data.xlsx");
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    showSection('dashboard', 'Dashboard'); // Default view
+    Object.keys(settingsConfig).forEach(listenToSettings);
+    listenToPebData(); // Ini akan memuat data dan map `deliveryNoToIdMap`
+
+    document.getElementById('searchInput').addEventListener('keyup', handleSearch);
+    document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
+    document.getElementById('toggleBtn').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('hidden');
+      document.getElementById('mainContent').classList.toggle('full-width');
+    });
+    document.getElementById('home-title').addEventListener('click', () => showSection('dashboard', 'Dashboard')); 
+    document.querySelector('.sidebar-menu').addEventListener('click', (e) => {
+        const button = e.target.closest('button');
+        if (!button) return;
+        if (button.dataset.section) showSection(button.dataset.section, button.dataset.title);
+        else if (button.id === 'nav-settings-toggle') {
+            document.getElementById('settingsMenu').style.display = document.getElementById('settingsMenu').style.display === "none" ? "block" : "none";
+        }
+    });
+    document.getElementById('templateLink').addEventListener('click', (e) => { e.preventDefault(); generateTemplate(); });
+    pebForm.addEventListener('submit', saveOrUpdateRow);
+    document.getElementById('cancelEditBtn').addEventListener('click', resetFormState);
+    document.getElementById('uploadBtn').addEventListener('click', handleExcelUpload);
+    document.getElementById('deleteSelectedBtn').addEventListener('click', deleteSelectedRows);
+    document.getElementById('selectAll').addEventListener('change', (e) => {
+        document.querySelectorAll('.row-checkbox').forEach(cb => { cb.checked = e.target.checked; });
+        updateDeleteControls();
+    });
+    document.querySelector('#logTable thead').addEventListener('click', (e) => {
+        const header = e.target.closest('th.sortable');
+        if (header) sortData(header.dataset.column);
+    });
+    document.body.addEventListener('click', (e) => {
+        const target = e.target.closest('button, input.row-checkbox');
+        if (!target) return;
+        const { id, type } = target.dataset;
+        if (target.matches('.edit-row')) startEditRow(id);
+        else if (target.matches('.delete-row')) deleteRow(id);
+        else if (target.matches('.delete-setting')) deleteSettingItem(type, id);
+        else if (target.matches('.crud-header .btn')) addSettingItem(type);
+        else if (target.matches('.row-checkbox')) updateDeleteControls();
+    });
+  });
+</script>
+</body>
+</html>
